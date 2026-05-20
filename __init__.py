@@ -59,7 +59,17 @@ class IMPORT_OT_bbpl_format(Operator, ImportHelper):
 def load_custom_file(filepath):
     with open(filepath,"rb") as f:
         map=Pbpl.LevelStudioMap(f)
+        freequeue=[] #array so we can free the data when we're done also i dont know the datatype for File object things so ill have to update this later
         pack_entries=map.metadata.package.entries
+        for entry in pack_entries:
+            if type(entry.data)=='string': #if the data is in a filepath
+                #i have no clue where this data is stored btw, i guess ill just figure it out later
+                file=open(filepath+entry.data,"rb")
+                freequeue.append(file)
+                entry.data=file
+        for entry in freequeue:
+            entry.close()
+
 
 def menu_func_import(self, context):
     self.layout.operator(IMPORT_OT_bbpl_format.bl_idname, text="BB+ Level (.pbpl)")
