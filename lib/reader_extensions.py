@@ -3,6 +3,6 @@ def ReadString(file):
     while (True):
         length : int=file.read(1)[0]
         partstring : bytes = file.read(length)
-        print(partstring.decode('utf-8'))
+        string+=partstring.decode('utf-8')
         if not length>>8:
             return string

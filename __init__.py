@@ -20,10 +20,30 @@ bl_info = {
 }
 
 import bpy
+import os
 from .lib import global_constructor as Pbpl
 from bpy_extras.io_utils import ImportHelper # pyright: ignore[reportMissingModuleSource]
 from bpy.props import StringProperty # pyright: ignore[reportMissingModuleSource]
 from bpy.types import Operator # pyright: ignore[reportMissingModuleSource]
+
+def imbuf_to_bpy_image(imbuf_img, image_name="ConvertedImage"):
+    # 1. Define a temporary path to hold the file
+    temp_path = os.path.join(bpy.app.tempdir, "temp_transfer.png")
+    
+    # 2. Use Blender's imbuf module to write out the data to disk
+    imbuf.write(imbuf_img, filepath=temp_path)
+    
+    # 3. Load the image into bpy.data.images
+    bpy_img = bpy.data.images.load(temp_path, check_existing=False)
+    bpy_img.name = image_name
+    
+    # 4. Pack the image so it lives in memory inside the .blend file
+    bpy_img.pack()
+    
+    # Clean up the temporary file from your disk
+    os.remove(temp_path)
+    
+    return bpy_img
 
 class IMPORT_OT_bbpl_format(Operator, ImportHelper):
     """Load a BB+ Level format (.pbpl)"""
@@ -39,9 +59,7 @@ class IMPORT_OT_bbpl_format(Operator, ImportHelper):
 def load_custom_file(filepath):
     with open(filepath,"rb") as f:
         map=Pbpl.LevelStudioMap(f)
-        
-        
-        
+        pack_entries=map.metadata.package.entries
 
 def menu_func_import(self, context):
     self.layout.operator(IMPORT_OT_bbpl_format.bl_idname, text="BB+ Level (.pbpl)")
